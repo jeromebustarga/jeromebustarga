@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSDJ - Brand Identity | Computer Science, Design & Journalism</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+/* Entry Animation */
+.page-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #1a2332;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.8s ease;
+}
+
+.page-loader.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.binary-loader {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+.data-stream {
+  position: absolute;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  animation: streamFall 0.8s ease-out forwards;
+  white-space: nowrap;
+}
+
+.data-stream:nth-child(1) { 
+  left: 10%;
+  color: #00AEEF;
+  animation-delay: 0s;
+}
+
+.data-stream:nth-child(2) { 
+  left: 30%;
+  color: #EC008C;
+  animation-delay: 0.1s;
+}
+
+.data-stream:nth-child(3) { 
+  left: 50%;
+  color: #FFF200;
+  animation-delay: 0.2s;
+}
+
+.data-stream:nth-child(4) { 
+  left: 70%;
+  color: #00AEEF;
+  animation-delay: 0.3s;
+}
+
+.data-stream:nth-child(5) { 
+  left: 90%;
+  color: #EC008C;
+  animation-delay: 0.4s;
+}
+
+@keyframes streamFall {
+  0% {
+    top: -100%;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    top: 110%;
+    opacity: 0;
+  }
+}
+
+.logo-reveal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #ffffff;
+  opacity: 0;
+  animation: logoReveal 0.6s ease-out 0.8s forwards;
+  text-shadow: 0 0 20px rgba(0, 174, 239, 0.5);
+}
+
+@keyframes logoReveal {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.content-wrapper {
+  opacity: 0;
+  animation: fadeInContent 0.8s ease-out 1.8s forwards;
+}
+
+@keyframes fadeInContent {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Exit Animation */
+body.exiting .content-wrapper {
+  animation: fadeOutContent 0.6s ease-out forwards;
+}
+
+body.exiting .page-loader {
+  opacity: 1;
+  pointer-events: all;
+}
+
+body.exiting .page-loader .logo-reveal {
+  animation: logoExit 0.6s ease-out forwards;
+}
+
+@keyframes fadeOutContent {
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes logoExit {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Chakra Petch', sans-serif;
+  background: #1a2332;
+  color: #ffffff;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* Navigation - CRITICAL: This must stay fixed! */
+nav {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  padding: 24px 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10002 !important;
+  background: rgba(26, 35, 50, 0.98);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 500;
+  color: #ffffff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -0.02em;
+}
+
+.logo-icon {
+  width: 35px;
+  height: 35px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.logo-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.back-link {
+  color: #ADD8E6;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 400;
+  transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.back-link:hover {
+  color: #00AEEF;
+}
+
+/* Hero Section */
+.brand-hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 100px 60px 60px;
+  position: relative;
+  margin-top: 0;
+}
+
+.brand-hero h1 {
+  font-size: 72px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, #ffffff 0%, #00AEEF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.brand-hero p {
+  font-size: 20px;
+  color: #ADD8E6;
+  max-width: 800px;
+  margin: 0 auto 40px;
+  font-weight: 300;
+  line-height: 1.8;
+}
+
+.hero-tagline {
+  font-size: 16px;
+  color: #00A99D;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+/* Section Styling */
+section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 120px 0;
+  position: relative;
+}
+
+section .container {
+  width: 100%;
+}
+
+section h2 {
+  font-size: 48px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 60px;
+  letter-spacing: 0.02em;
+}
+
+section h3 {
+  font-size: 28px;
+  font-weight: 500;
+  margin-bottom: 32px;
+  letter-spacing: 0.01em;
+}
+
+section p {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #ADD8E6;
+  font-weight: 300;
+}
+
+/* Logo Showcase */
+.main-logo-showcase {
+  background: rgba(46, 49, 146, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 174, 239, 0.2);
+  border-radius: 24px;
+  padding: 80px 60px;
+  text-align: center;
+  margin-bottom: 80px;
+}
+
+.main-logo-container {
+  max-width: 600px;
+  margin: 0 auto 40px;
+}
+
+.main-logo-container img {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 10px 40px rgba(0, 174, 239, 0.3));
+}
+
+.logo-description {
+  font-size: 17px;
+  color: #ffffff;
+  line-height: 1.9;
+  max-width: 900px;
+  margin: 0 auto;
+  font-weight: 300;
+}
+
+/* Logo Carousel Container */
+.logo-carousel-container {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto 60px;
+  padding: 0 60px;
+}
+
+/* Carousel */
+.logo-carousel {
+  display: flex;
+  overflow: hidden;
+  scroll-behavior: smooth;
+  gap: 32px;
+  scroll-snap-type: x mandatory;
+}
+
+.logo-variation-card {
+  flex: 0 0 calc(50% - 16px);
+  background: rgba(46, 49, 146, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 48px 32px;
+  text-align: center;
+  transition: all 0.3s ease;
+  scroll-snap-align: start;
+}
+
+.logo-variation-card:hover {
+  background: rgba(46, 49, 146, 0.15);
+  border-color: rgba(0, 174, 239, 0.3);
+  transform: translateY(-4px);
+}
+
+.logo-variation-card h4 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 24px;
+  color: #00AEEF;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.logo-variation-card img {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  margin: 0 auto;
+}
+
+/* Carousel Arrows */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 174, 239, 0.2);
+  border: 1px solid rgba(0, 174, 239, 0.4);
+  color: #00AEEF;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 32px;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.carousel-arrow:hover {
+  background: rgba(0, 174, 239, 0.4);
+  border-color: rgba(0, 174, 239, 0.6);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-prev {
+  left: 0;
+}
+
+.carousel-next {
+  right: 0;
+}
+
+/* Carousel Dots */
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.carousel-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(0, 174, 239, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.carousel-dot.active {
+  background: #00AEEF;
+  border-color: #00AEEF;
+  transform: scale(1.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .logo-variation-card {
+    flex: 0 0 100%;
+  }
+  
+  .logo-carousel-container {
+    padding: 0 50px;
+  }
+  
+  .carousel-arrow {
+    width: 40px;
+    height: 40px;
+    font-size: 28px;
+  }
+}
+
+/* Color Palette */
+.color-palette {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 24px;
+  margin-bottom: 60px;
+}
+
+.color-swatch {
+  text-align: center;
+}
+
+.color-box {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.color-swatch:hover .color-box {
+  transform: scale(1.08);
+}
+
+.color-code {
+  font-size: 14px;
+  color: #DCDCE1;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.color-name {
+  font-size: 13px;
+  color: #ADD8E6;
+  font-weight: 300;
+}
+
+/* Typography Section */
+.typography-showcase {
+  background: rgba(46, 49, 146, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  padding: 60px;
+  margin-bottom: 40px;
+}
+
+.font-display {
+  font-size: 56px;
+  color: #ffffff;
+  margin-bottom: 24px;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+}
+
+.font-weights {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.weight-sample {
+  text-align: center;
+  padding: 24px;
+  background: rgba(0, 174, 239, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 174, 239, 0.1);
+}
+
+.weight-sample span {
+  display: block;
+  font-size: 32px;
+  margin-bottom: 12px;
+  font-family: 'Chakra Petch', sans-serif;
+}
+
+.weight-name {
+  font-size: 13px;
+  color: #ADD8E6;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Graphic Elements */
+.graphic-elements-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+}
+
+.graphic-element-card {
+  background: rgba(46, 49, 146, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+}
+
+.graphic-element-card h4 {
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 24px;
+  color: #00AEEF;
+  letter-spacing: 0.05em;
+}
+
+.graphic-element-card p {
+  font-size: 15px;
+  color: #ADD8E6;
+  line-height: 1.7;
+}
+
+/* Brand Personality */
+.personality-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  margin-bottom: 60px;
+}
+
+/* Center the last item if odd number of cards */
+.personality-card:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  max-width: 50%;
+  margin: 0 auto;
+}
+
+.personality-card {
+  background: linear-gradient(135deg, rgba(0, 174, 239, 0.1) 0%, rgba(0, 169, 157, 0.1) 100%);
+  border: 1px solid rgba(0, 174, 239, 0.2);
+  border-radius: 16px;
+  padding: 40px;
+  transition: all 0.3s ease;
+}
+
+.personality-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 174, 239, 0.4);
+}
+
+.personality-card h4 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #00AEEF;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.personality-card p {
+  font-size: 16px;
+  color: #ffffff;
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+/* Mockups Gallery */
+.mockups-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.mockup-item {
+  aspect-ratio: 1;
+  background: rgba(46, 49, 146, 0.08);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+}
+
+.mockup-item:hover {
+  border-color: rgba(0, 174, 239, 0.4);
+  transform: scale(1.03);
+}
+
+.mockup-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Lightbox Modal */
+.lightbox {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  cursor: zoom-out;
+}
+
+.lightbox.active {
+  display: flex;
+}
+
+.lightbox-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  position: relative;
+  animation: zoomIn 0.3s ease;
+}
+
+.lightbox-content img {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: -50px;
+  right: 0;
+  background: rgba(0, 174, 239, 0.2);
+  border: 1px solid rgba(0, 174, 239, 0.4);
+  color: #ffffff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.lightbox-close:hover {
+  background: rgba(0, 174, 239, 0.4);
+  transform: rotate(90deg);
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Power Switch */
+.switch-container {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 9999;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 56px;
+  height: 32px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: rgba(0, 174, 239, 0.2);
+  border-radius: 32px;
+  border: 1px solid rgba(0, 174, 239, 0.4);
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 24px;
+  width: 24px;
+  left: 3px;
+  bottom: 3px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  transition: 0.4s;
+}
+
+input:checked + .slider {
+  background: rgba(0, 174, 239, 0.4);
+  border-color: rgba(0, 174, 239, 0.6);
+}
+
+input:checked + .slider:before {
+  transform: translateX(24px);
+  background-color: #00AEEF;
+  box-shadow: 0 0 12px rgba(0, 174, 239, 0.6);
+}
+
+/* Binary Rain Canvas */
+#binaryCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+#binaryCanvas.active {
+  opacity: 1;
+}
+
+/* Footer */
+footer {
+  background: rgba(26, 35, 50, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 40px 0;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 80px;
+}
+
+.footer-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #00AEEF;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+}
+
+.footer-back-link:hover {
+  color: #ffffff;
+  gap: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  nav {
+    padding: 20px 30px !important;
+  }
+
+  .brand-hero {
+    padding: 140px 30px 80px;
+  }
+
+  .brand-hero h1 {
+    font-size: 48px;
+  }
+  
+  .logo-variations-grid,
+  .personality-grid,
+  .graphic-elements-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .color-palette {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .mockups-gallery {
+    grid-template-columns: 1fr;
+  }
+  
+  .font-weights {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Page Loader with Binary Data Stream -->
+<div class="page-loader" id="pageLoader">
+  <div class="binary-loader">
+    <div class="data-stream">01001000</div>
+    <div class="data-stream">11010011</div>
+    <div class="data-stream">10110101</div>
+    <div class="data-stream">01110010</div>
+    <div class="data-stream">11001101</div>
+  </div>
+  <div class="logo-reveal">CSDJ</div>
+</div>
+
+<!-- Navigation - STAYS ON TOP -->
+<nav>
+  <a href="index.html" class="logo">
+    <div class="logo-icon">
+      <img src="images/logo.png" alt="Jerome Bustarga Logo">
+    </div>
+    <span>Jerome Bustarga</span>
+  </a>
+  <a href="logobranding.html" class="back-link">
+    <i class="fa-solid fa-arrow-left"></i>
+    Back to Logo & Branding
+  </a>
+</nav>
+
+<!-- Content Wrapper -->
+<div class="content-wrapper">
+
+<section class="brand-hero">
+  <div class="container">
+    <div class="hero-tagline">Creighton University</div>
+    <h1>CSDJ Brand Identity</h1>
+    <p>At the intersection of algorithms, aesthetics, and storytelling, CSDJ bridges technology, design, and journalism. This comprehensive brand system represents our commitment to innovation, creativity, and ethical communication.</p>
+  </div>
+</section>
+
+<section id="logo">
+  <div class="container">
+    <h2>Logo System</h2>
+    
+    <div class="main-logo-showcase">
+      <div class="main-logo-container">
+        <img src="images/csdj logo.png" alt="CSDJ Main Logo">
+      </div>
+      <p class="logo-description">
+        The primary CSDJ logo features a global network design that symbolizes worldwide digital connectivity. It consists of a white globe with latitude and longitude lines contained within a rounded square frame. The "CSDJ" letters wrap around the globe, creating a dynamic sense of movement. Connection points extend outward from the circuit-board inspired frame, representing data flow and digital networks, with color accents (cyan, magenta, and yellow) referencing the creative and technical aspects of our disciplines.
+      </p>
+    </div>
+
+<h3 style="text-align: center; margin-bottom: 40px;">Logo Variations</h3>
+<div class="logo-carousel-container">
+  <button class="carousel-arrow carousel-prev">‹</button>
+  
+  <div class="logo-carousel">
+    <div class="logo-variation-card">
+      <h4>Hexagonal Badge</h4>
+      <img src="images/c2.png" alt="Hexagonal Badge Logo">
+    </div>
+    <div class="logo-variation-card">
+      <h4>Circuit Board Symbol</h4>
+      <img src="images/c3.png" alt="Circuit Logo">
+    </div>
+    <div class="logo-variation-card">
+      <h4>Pixel Art Version</h4>
+      <img src="images/c4.png" alt="Pixel Art Logo">
+    </div>
+    <div class="logo-variation-card">
+      <h4>Network Nodes</h4>
+      <img src="images/c1.png" alt="Network Logo">
+    </div>
+  </div>
+  
+  <button class="carousel-arrow carousel-next">›</button>
+</div>
+
+<div class="carousel-dots"></div>
+  </div>
+</section>
+
+<section id="colors" style="background: rgba(46, 49, 146, 0.05);">
+  <div class="container">
+    <h2>Color Palette</h2>
+    
+    <h3>Primary Colors</h3>
+    <div class="color-palette">
+      <div class="color-swatch">
+        <div class="color-box" style="background: #2E3192;"></div>
+        <div class="color-code">#2E3192</div>
+        <div class="color-name">CSDJ Dark Blue</div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-box" style="background: #00AEEF;"></div>
+        <div class="color-code">#00AEEF</div>
+        <div class="color-name">Cyan Blue</div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-box" style="background: #EC008C;"></div>
+        <div class="color-code">#EC008C</div>
+        <div class="color-name">Magenta</div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-box" style="background: #FFF200;"></div>
+        <div class="color-code">#FFF200</div>
+        <div class="color-name">Yellow</div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-box" style="background: #FFFFFF; border: 2px solid rgba(0, 174, 239, 0.3);"></div>
+        <div class="color-code">#FFFFFF</div>
+        <div class="color-name">White</div>
+      </div>
+    </div>
+
+    <h3>Secondary Colors</h3>
+    <div class="color-palette" style="grid-template-columns: repeat(4, 1fr);">
+      <div class="color-swatch">
+        <div class="color-box" style="background: #ADD8E6;"></div>
+        <div class="color-code">#ADD8E6</div>
+        <div class="color-name">Light Blue</div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-box" style="background: #DCDCE1;"></div>
+        <div class="color-code">#DCDCE1</div>
+        <div class="color-name">Tech Silver</div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-box" style="background: #00A99D;"></div>
+        <div class="color-code">#00A99D</div>
+        <div class="color-name">Innovation Green</div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-box" style="background: #FFBA08;"></div>
+        <div class="color-code">#FFBA08</div>
+        <div class="color-name">Attention Amber</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="typography">
+  <div class="container">
+    <h2>Typography</h2>
+    
+    <div class="typography-showcase">
+      <h3 style="color: #00AEEF; font-size: 16px; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 24px;">Display Font</h3>
+      <div class="font-display" style="font-weight: 700;">CSDJ</div>
+      <p style="color: #ADD8E6; margin-bottom: 32px;">Neuropol X Regular - Used for the "CSDJ" wordmark and major headlines. A distinctive techno-inspired font that conveys innovation.</p>
+      
+      <div class="font-weights">
+        <div class="weight-sample">
+          <span style="font-weight: 300;">Aa</span>
+          <div class="weight-name">Light</div>
+        </div>
+        <div class="weight-sample">
+          <span style="font-weight: 400;">Aa</span>
+          <div class="weight-name">Regular</div>
+        </div>
+        <div class="weight-sample">
+          <span style="font-weight: 600;">Aa</span>
+          <div class="weight-name">Semi Bold</div>
+        </div>
+        <div class="weight-sample">
+          <span style="font-weight: 700;">Aa</span>
+          <div class="weight-name">Bold</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="typography-showcase">
+      <h3 style="color: #00AEEF; font-size: 16px; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 24px;">Body Font</h3>
+      <div class="font-display" style="font-weight: 400; font-family: 'Chakra Petch', sans-serif;">Chakra Petch</div>
+      <p style="color: #ADD8E6;">Used for descriptor text, subheadings, and callouts. A modern technical font that balances precision with readability.</p>
+    </div>
+  </div>
+</section>
+
+<section id="personality" style="background: rgba(46, 49, 146, 0.05);">
+  <div class="container">
+    <h2>Brand Personality</h2>
+    
+    <div class="personality-grid">
+      <div class="personality-card">
+        <h4><i class="fa-solid fa-lightbulb" style="margin-right: 12px;"></i>Innovative</h4>
+        <p>Forward-thinking and embracing emerging technologies and methodologies.</p>
+      </div>
+      <div class="personality-card">
+        <h4><i class="fa-solid fa-palette" style="margin-right: 12px;"></i>Creative</h4>
+        <p>Expressing ideas through visual, written, and technical means.</p>
+      </div>
+      <div class="personality-card">
+        <h4><i class="fa-solid fa-shield-halved" style="margin-right: 12px;"></i>Ethical</h4>
+        <p>Committed to responsible approaches to technology and communication.</p>
+      </div>
+      <div class="personality-card">
+        <h4><i class="fa-solid fa-users" style="margin-right: 12px;"></i>Collaborative</h4>
+        <p>Encouraging cross-disciplinary teamwork and shared problem-solving.</p>
+      </div>
+      <div class="personality-card">
+        <h4><i class="fa-solid fa-scale-balanced" style="margin-right: 12px;"></i>Balanced</h4>
+        <p>Bridging technical precision with creative expression, maintaining both academic rigor and approachable communication.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="mockups">
+  <div class="container">
+    <h2>Brand Applications</h2>
+    <div class="mockups-gallery">
+      <div class="mockup-item">
+        <img src="images/csdj1.png" alt="Professor and student collaboration">
+      </div>
+      <div class="mockup-item">
+        <img src="images/csdj2.png" alt="CSDJ branded materials">
+      </div>
+      <div class="mockup-item">
+        <img src="images/csdj3.png" alt="CSDJ merchandise">
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <a href="logobranding.html" class="footer-back-link">
+      <i class="fa-solid fa-arrow-left"></i>
+      Back to Logo & Branding
+    </a>
+  </div>
+  <div class="container" style="margin-top: 20px; color: #707070; font-size: 14px;">
+    <p>CSDJ Brand Identity © 2025 Creighton University</p>
+  </div>
+</footer>
+
+</div>
+<!-- End Content Wrapper -->
+
+<!-- Power Switch -->
+<div class="switch-container">
+  <label class="switch">
+    <input type="checkbox" id="constellationSwitch">
+    <span class="slider"></span>
+  </label>
+</div>
+
+<!-- Lightbox Modal -->
+<div class="lightbox" id="lightbox">
+  <div class="lightbox-content">
+    <button class="lightbox-close" onclick="closeLightbox()">
+      <i class="fa-solid fa-times"></i>
+    </button>
+    <img id="lightbox-img" src="" alt="">
+  </div>
+</div>
+
+<script>
+// Entry Animation
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('pageLoader').classList.add('hidden');
+  }, 2200);
+});
+
+// Exit Animation for links
+document.querySelectorAll('a[href]').forEach(link => {
+  link.addEventListener('click', (e) => {
+    const href = link.getAttribute('href');
+    
+    // Don't animate for anchor links or external links
+    if (href.startsWith('#') || href.startsWith('http')) return;
+    
+    e.preventDefault();
+    document.body.classList.add('exiting');
+    
+    // Show logo again on exit
+    const loader = document.getElementById('pageLoader');
+    loader.classList.remove('hidden');
+    
+    setTimeout(() => {
+      window.location.href = href;
+    }, 800);
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  const carousel = document.querySelector('.logo-carousel');
+  const cards = document.querySelectorAll('.logo-variation-card');
+  const prevBtn = document.querySelector('.carousel-prev');
+  const nextBtn = document.querySelector('.carousel-next');
+  const dotsContainer = document.querySelector('.carousel-dots');
+  
+  let currentIndex = 0;
+  const cardsPerView = window.innerWidth > 768 ? 2 : 1;
+  const totalSlides = Math.ceil(cards.length / cardsPerView);
+  
+  // Create dots
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('div');
+    dot.classList.add('carousel-dot');
+    if (i === 0) dot.classList.add('active');
+    dot.addEventListener('click', () => goToSlide(i));
+    dotsContainer.appendChild(dot);
+  }
+  
+  const dots = document.querySelectorAll('.carousel-dot');
+  
+  function updateCarousel() {
+    const cardWidth = cards[0].offsetWidth;
+    const gap = 32;
+    const scrollAmount = (cardWidth + gap) * cardsPerView * currentIndex;
+    carousel.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+    
+    // Update dots
+    dots.forEach((dot, index) => {
+      dot.classList.toggle('active', index === currentIndex);
+    });
+  }
+  
+  function goToSlide(index) {
+    currentIndex = index;
+    updateCarousel();
+  }
+  
+  prevBtn.addEventListener('click', () => {
+    currentIndex = currentIndex > 0 ? currentIndex - 1 : totalSlides - 1;
+    updateCarousel();
+  });
+  
+  nextBtn.addEventListener('click', () => {
+    currentIndex = currentIndex < totalSlides - 1 ? currentIndex + 1 : 0;
+    updateCarousel();
+  });
+  
+});
+
+// Lightbox functionality
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightbox-img');
+
+function makeImagesClickable() {
+  const allImages = document.querySelectorAll('.mockup-item img, .main-logo-container img, .logo-variation-card img');
+  
+  allImages.forEach(img => {
+    img.style.cursor = 'pointer';
+    img.addEventListener('click', (e) => {
+      e.stopPropagation();
+      lightboxImg.src = img.src;
+      lightbox.classList.add('active');
+    });
+  });
+}
+
+window.addEventListener('load', makeImagesClickable);
+
+function closeLightbox() {
+  lightbox.classList.remove('active');
+}
+
+lightbox.addEventListener('click', (e) => {
+  if (e.target === lightbox) {
+    closeLightbox();
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeLightbox();
+  }
+});
+
+// Binary rain effect with power switch
+const constellationSwitch = document.getElementById('constellationSwitch');
+let binarySketch;
+
+// Auto-start binary rain on page load
+window.addEventListener('load', () => {
+  // Wait for entry animation to finish
+  setTimeout(() => {
+    constellationSwitch.checked = true;
+    constellationSwitch.dispatchEvent(new Event('change'));
+  }, 2400);
+});
+
+constellationSwitch.addEventListener('change', () => {
+  if (constellationSwitch.checked) {
+    // Start binary rain effect
+    binarySketch = new p5((p) => {
+      let streams = [];
+      let clickRipples = [];
+      
+      class BinaryStream {
+        constructor(x) {
+          this.x = x;
+          this.y = p.random(-500, 0);
+          this.speed = p.random(3, 8);
+          this.characters = [];
+          this.length = p.random(10, 30);
+          this.color = p.random([
+            [0, 174, 239],      // Cyan
+            [236, 0, 140],      // Magenta
+            [255, 242, 0],      // Yellow
+            [255, 255, 255]     // White
+          ]);
+          
+          for (let i = 0; i < this.length; i++) {
+            this.characters.push({
+              char: p.random() > 0.5 ? '0' : '1',
+              opacity: p.map(i, 0, this.length, 255, 0)
+            });
+          }
+        }
+        
+        update() {
+          this.y += this.speed;
+          
+          // Random character changes
+          if (p.random() > 0.95) {
+            let idx = p.floor(p.random(this.characters.length));
+            this.characters[idx].char = p.random() > 0.5 ? '0' : '1';
+          }
+          
+          // Reset when off screen
+          if (this.y > p.height + 100) {
+            this.y = p.random(-500, -100);
+            this.x = p.random(p.width);
+          }
+        }
+        
+        display() {
+          p.textFont('Courier New');
+          p.textSize(16);
+          p.textAlign(p.CENTER, p.CENTER);
+          
+          for (let i = 0; i < this.characters.length; i++) {
+            let yPos = this.y + i * 20;
+            
+            if (yPos > 0 && yPos < p.height) {
+              let alpha = this.characters[i].opacity;
+              
+              // Brightest at the head
+              if (i === 0) {
+                p.fill(this.color[0], this.color[1], this.color[2], 150);
+                p.textSize(20);
+              } else {
+                p.fill(this.color[0], this.color[1], this.color[2], alpha * 0.6);
+                p.textSize(16);
+              }
+              
+              p.text(this.characters[i].char, this.x, yPos);
+            }
+          }
+        }
+      }
+      
+      class ClickRipple {
+        constructor(x, y) {
+          this.x = x;
+          this.y = y;
+          this.radius = 0;
+          this.maxRadius = 200;
+          this.alpha = 255;
+          this.color = p.random([
+            [0, 174, 239],
+            [236, 0, 140],
+            [255, 242, 0]
+          ]);
+          // Generate random binary string
+          this.binaryString = '';
+          for (let i = 0; i < 8; i++) {
+            this.binaryString += p.random() > 0.5 ? '0' : '1';
+          }
+        }
+        
+        update() {
+          this.radius += 4;
+          this.alpha = p.map(this.radius, 0, this.maxRadius, 255, 0);
+        }
+        
+        display() {
+          p.noFill();
+          p.strokeWeight(2);
+          p.stroke(this.color[0], this.color[1], this.color[2], this.alpha);
+          p.ellipse(this.x, this.y, this.radius * 2);
+          
+          // Display binary number at ripple edge
+          if (this.radius > 30 && this.radius < 150) {
+            p.fill(this.color[0], this.color[1], this.color[2], this.alpha);
+            p.noStroke();
+            p.textFont('Courier New');
+            p.textSize(14);
+            p.textAlign(p.CENTER, p.CENTER);
+            p.text(this.binaryString, this.x, this.y - this.radius - 10);
+          }
+        }
+        
+        isDead() {
+          return this.radius > this.maxRadius;
+        }
+      }
+      
+      p.setup = () => {
+        const canvas = p.createCanvas(p.windowWidth, p.windowHeight);
+        canvas.id('binaryCanvas');
+        canvas.addClass('active');
+        
+        // Create initial streams
+        let numStreams = p.floor(p.width / 40);
+        for (let i = 0; i < numStreams; i++) {
+          streams.push(new BinaryStream(p.random(p.width)));
+        }
+      };
+      
+      p.draw = () => {
+        p.clear();
+        
+        // Update and display streams
+        for (let stream of streams) {
+          stream.update();
+          stream.display();
+        }
+        
+        // Update and display click ripples
+        for (let i = clickRipples.length - 1; i >= 0; i--) {
+          clickRipples[i].update();
+          clickRipples[i].display();
+          
+          if (clickRipples[i].isDead()) {
+            clickRipples.splice(i, 1);
+          }
+        }
+        
+        // Add highlighting effect near mouse
+        for (let stream of streams) {
+          let d = p.dist(stream.x, stream.y, p.mouseX, p.mouseY);
+          if (d < 100) {
+            p.noFill();
+            p.strokeWeight(2);
+            let alpha = p.map(d, 0, 100, 150, 0);
+            p.stroke(0, 174, 239, alpha);
+            p.line(stream.x, stream.y, p.mouseX, p.mouseY);
+          }
+        }
+      };
+      
+      // Create ripple and convert click position to binary on mouse press
+      p.mousePressed = () => {
+        clickRipples.push(new ClickRipple(p.mouseX, p.mouseY));
+        
+        // Add extra stream at click position
+        streams.push(new BinaryStream(p.mouseX));
+        
+        // Limit total streams
+        if (streams.length > 100) {
+          streams.shift();
+        }
+        
+        return false;
+      };
+      
+      p.windowResized = () => {
+        p.resizeCanvas(p.windowWidth, p.windowHeight);
+        // Adjust stream count
+        let targetStreams = p.floor(p.width / 40);
+        while (streams.length < targetStreams) {
+          streams.push(new BinaryStream(p.random(p.width)));
+        }
+      };
+    });
+  } else {
+    // Stop binary effect
+    if (binarySketch) {
+      binarySketch.remove();
+      binarySketch = null;
+    }
+  }
+});
+</script>
+
+</body>
+</html>
