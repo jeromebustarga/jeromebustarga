@@ -1543,37 +1543,6 @@ new p5((p) => {
     p.resizeCanvas(p.windowWidth, p.windowHeight);
   };
 });
-
-/* Project Image Styles */
-.project-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 2;
-  opacity: 0;
-  transition: transform 0.4s ease, opacity 0.3s ease;
-}
-
-.project-image.loaded {
-  opacity: 1;
-}
-
-.project-visual:hover .project-image {
-  transform: scale(1.05);
-}
-
-/* Keep placeholder visible until image loads */
-.project-visual .project-placeholder {
-  z-index: 1;
-}
-
-/* Optional: Add loading animation to icon */
-.project-visual:not(.image-loaded) .project-placeholder i {
-  animation: pulse 2s ease-in-out infinite;
-}
 </script>
 </body>
 </html>
