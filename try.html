@@ -1,901 +1,1516 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Repository - Jerome's World</title>
-    <link rel="icon" type="image/png" href="images/favicon.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jerome Bustarga - Developer Portfolio</title>
+<link rel="icon" type="image/png" href="images/favicon.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
 
-        :root {
-            --terminal-bg: #0d0d0d;
-            --terminal-orange: #f47921;
-            --terminal-amber: #ff8c3a;
-            --terminal-dim: #d96a1a;
-            --panel-bg: rgba(20, 20, 20, 0.6);
-            --border-color: rgba(244, 121, 33, 0.2);
-            --text-primary: #e8e8e8;
-            --text-secondary: #909090;
-            --text-dim: #606060;
-            --accent-orange: #f47921;
-            --success-color: #00ff88;
-            --error-color: #ff4444;
-        }
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--terminal-bg);
-            color: var(--terminal-orange);
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            padding: 20px;
-            gap: 20px;
-            opacity: 0;
-            transition: opacity 1s ease;
-        }
+html {
+  scroll-behavior: smooth;
+}
 
-        body.loaded {
-            opacity: 1;
-        }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0d0d0d;
+  color: #e8e8e8;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
 
-        /* Terminal Font */
-        .terminal-text {
-            font-family: 'Courier New', Consolas, Monaco, monospace;
-        }
+/* Overlay at startup */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: #0d0d0d;
+  z-index: 9999;
+  transition: opacity 2s ease;
+}
 
-        /* Background Orbs Effect */
-        .bg-orbs {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            overflow: hidden;
-            pointer-events: none;
-        }
+/* Radial light effect from bulb */
+.radial-light {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 200vw;
+  height: 200vw;
+  transform: translate(-50%, -50%) scale(0);
+  background: radial-gradient(circle at center, 
+    rgba(244, 121, 33, 0.15) 0%,
+    rgba(244, 121, 33, 0.08) 10%,
+    rgba(13, 13, 13, 0) 40%);
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(120px);
-            opacity: 0.04;
-        }
+body.power-on .radial-light {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  top: min(180px, 25vh);
+}
 
-        .orb1 {
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, var(--terminal-orange), transparent);
-            top: -250px;
-            left: -200px;
-            animation: float 25s ease-in-out infinite;
-        }
+/* Icon Dropdown Menu - starts in navbar, moves to lower left on scroll */
+.icon-dropdown {
+  position: fixed;
+  top: 24px;
+  right: 30px;
+  z-index: 10001;
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
 
-        .orb2 {
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, var(--terminal-dim), transparent);
-            bottom: -200px;
-            right: -150px;
-            animation: float 30s ease-in-out infinite reverse;
-        }
+body.power-on .icon-dropdown {
+  opacity: 1;
+  pointer-events: auto;
+}
 
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(80px, -80px) scale(1.05); }
-            66% { transform: translate(-60px, 80px) scale(0.95); }
-        }
+/* When scrolled, move to lower left */
+body.scrolled .icon-dropdown {
+  top: auto;
+  bottom: 30px;
+  right: auto;
+  left: 30px;
+}
 
-        /* Left Panel Container */
-        .left-panel {
-            width: 450px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+.icon-dropdown-btn {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #a0a0a0;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(20px);
+}
 
-        /* Terminal Window */
-        .terminal-container {
-            background: var(--panel-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 20px;
-            padding: 20px;
-            height: 400px;
-            position: relative;
-            overflow-y: auto;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 0 60px rgba(244, 121, 33, 0.1);
-        }
+.icon-dropdown-btn:hover {
+  background: rgba(244, 121, 33, 0.08);
+  border-color: rgba(244, 121, 33, 0.3);
+  color: #f47921;
+}
 
-        .terminal-container::before {
-            content: 'TERMINAL';
-            position: absolute;
-            top: -12px;
-            left: 20px;
-            background: var(--terminal-bg);
-            padding: 0 10px;
-            color: var(--terminal-dim);
-            font-size: 12px;
-            letter-spacing: 2px;
-            font-weight: 600;
-        }
+.icon-menu {
+  display: none;
+  position: absolute;
+  top: 58px;
+  right: 0;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(20, 20, 20, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+}
 
-        /* Custom Scrollbar */
-        .terminal-container::-webkit-scrollbar,
-        .projects-container::-webkit-scrollbar {
-            width: 8px;
-        }
+/* When scrolled to lower left, dropdown should go up */
+body.scrolled .icon-menu {
+  top: auto;
+  bottom: 58px;
+  right: auto;
+  left: 0;
+}
 
-        .terminal-container::-webkit-scrollbar-track,
-        .projects-container::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 4px;
-        }
+.icon-menu.show {
+  display: flex;
+  animation: slideDown 0.3s ease;
+}
 
-        .terminal-container::-webkit-scrollbar-thumb,
-        .projects-container::-webkit-scrollbar-thumb {
-            background: rgba(244, 121, 33, 0.3);
-            border-radius: 4px;
-        }
+body.scrolled .icon-menu.show {
+  animation: slideUp 0.3s ease;
+}
 
-        .terminal-container::-webkit-scrollbar-thumb:hover,
-        .projects-container::-webkit-scrollbar-thumb:hover {
-            background: rgba(244, 121, 33, 0.5);
-        }
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-        .terminal-content {
-            font-size: 14px;
-            line-height: 1.6;
-        }
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-        .terminal-line {
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-        }
+.icon-menu a {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  color: #a0a0a0;
+  font-size: 18px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
 
-        .prompt {
-            color: var(--terminal-orange);
-            margin-right: 5px;
-            font-family: 'Courier New', monospace;
-        }
+.icon-menu a:hover {
+  background: rgba(244, 121, 33, 0.08);
+  border-color: rgba(244, 121, 33, 0.3);
+  color: #f47921;
+  transform: translateY(-2px);
+}
 
-        .terminal-input {
-            background: transparent;
-            border: none;
-            color: var(--terminal-orange);
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            outline: none;
-            flex: 1;
-            caret-color: var(--terminal-orange);
-        }
+/* Lightbulb Power Button */
+.lightbulb-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
 
-        .terminal-output {
-            color: var(--text-secondary);
-            margin: 10px 0;
-            padding-left: 20px;
-            font-family: 'Courier New', monospace;
-        }
+body.power-on .lightbulb-container {
+  position: absolute;
+  top: min(180px, 25vh);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+}
 
-        .terminal-error {
-            color: var(--error-color);
-            margin: 10px 0;
-            padding-left: 20px;
-            font-family: 'Courier New', monospace;
-        }
+.lightbulb {
+  width: 100px;
+  height: 100px;
+  position: relative;
+  transition: all 0.6s ease;
+  animation: pulse 2s ease-in-out infinite;
+}
 
-        .terminal-success {
-            color: var(--success-color);
-            margin: 10px 0;
-            padding-left: 20px;
-            font-family: 'Courier New', monospace;
-        }
+body.power-on .lightbulb {
+  animation: none;
+}
 
-        /* Blinking cursor */
-        .cursor {
-            display: inline-block;
-            width: 8px;
-            height: 16px;
-            background: var(--terminal-orange);
-            animation: blink 1s infinite;
-            vertical-align: middle;
-            margin-left: 2px;
-        }
+.lightbulb:hover {
+  transform: scale(1.1);
+}
 
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0; }
-        }
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
 
-        /* Projects List */
-        .projects-container {
-            background: var(--panel-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 20px;
-            padding: 20px;
-            flex: 1;
-            overflow-y: auto;
-            position: relative;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 0 60px rgba(244, 121, 33, 0.1);
-        }
+.bulb-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: all 0.6s ease;
+}
 
-        .projects-container::before {
-            content: 'PROJECTS';
-            position: absolute;
-            top: -12px;
-            left: 20px;
-            background: var(--terminal-bg);
-            padding: 0 10px;
-            color: var(--terminal-dim);
-            font-size: 12px;
-            letter-spacing: 2px;
-            font-weight: 600;
-        }
+.bulb-off {
+  display: block;
+}
 
-        .project-group {
-            margin-bottom: 25px;
-        }
+.bulb-on {
+  display: none;
+  filter: drop-shadow(0 0 40px rgba(244, 121, 33, 0.8)) drop-shadow(0 0 80px rgba(244, 121, 33, 0.5));
+}
 
-        .project-group-title {
-            color: var(--terminal-amber);
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid var(--border-color);
-            font-family: 'Inter', sans-serif;
-        }
+body.power-on .bulb-off {
+  display: none;
+}
 
-        .project-item {
-            color: var(--text-secondary);
-            padding: 8px 0 8px 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 13px;
-            position: relative;
-            font-family: 'Courier New', monospace;
-        }
+body.power-on .bulb-on {
+  display: block;
+}
 
-        .project-item::before {
-            content: '/';
-            position: absolute;
-            left: 8px;
-            color: var(--terminal-dim);
-            opacity: 0.5;
-        }
+/* Light rays animation when on */
+.light-rays {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
 
-        .project-item:hover {
-            color: var(--terminal-orange);
-            padding-left: 25px;
-            text-shadow: 0 0 10px rgba(244, 121, 33, 0.3);
-        }
+body.power-on .light-rays {
+  opacity: 1;
+  animation: rotate 20s linear infinite;
+}
 
-        .project-item.active {
-            color: var(--terminal-orange);
-            background: rgba(244, 121, 33, 0.05);
-            border-left: 2px solid var(--terminal-orange);
-        }
+.ray {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 70px;
+  background: linear-gradient(to bottom, rgba(244, 121, 33, 0.4), transparent);
+  transform-origin: 50% 0%;
+}
 
-        /* Right Panel - Preview */
-        .preview-container {
-            flex: 1;
-            background: var(--panel-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 20px;
-            padding: 20px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 0 60px rgba(244, 121, 33, 0.1);
-        }
+.ray:nth-child(1) { transform: translate(-50%, -100%) rotate(0deg); }
+.ray:nth-child(2) { transform: translate(-50%, -100%) rotate(45deg); }
+.ray:nth-child(3) { transform: translate(-50%, -100%) rotate(90deg); }
+.ray:nth-child(4) { transform: translate(-50%, -100%) rotate(135deg); }
+.ray:nth-child(5) { transform: translate(-50%, -100%) rotate(180deg); }
+.ray:nth-child(6) { transform: translate(-50%, -100%) rotate(225deg); }
+.ray:nth-child(7) { transform: translate(-50%, -100%) rotate(270deg); }
+.ray:nth-child(8) { transform: translate(-50%, -100%) rotate(315deg); }
 
-        .preview-container::before {
-            content: 'PREVIEW';
-            position: absolute;
-            top: -12px;
-            left: 20px;
-            background: var(--terminal-bg);
-            padding: 0 10px;
-            color: var(--terminal-dim);
-            font-size: 12px;
-            letter-spacing: 2px;
-            font-weight: 600;
-        }
+@keyframes rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
 
-        .preview-frame {
-            flex: 1;
-            background: rgba(13, 13, 13, 0.5);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
-        }
+/* Main Content Fade-in */
+main {
+  opacity: 0;
+  transition: opacity 2s ease;
+}
 
-        .preview-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: white;
-        }
+body.power-on {
+  background: #0d0d0d;
+}
 
-        .preview-placeholder {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-dim);
-            font-size: 14px;
-            text-align: center;
-            padding: 20px;
-            font-family: 'Inter', sans-serif;
-        }
+/* Subtle gradient orbs background */
+.bg-orbs {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
 
-        .preview-loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: var(--terminal-orange);
-            font-size: 14px;
-            font-family: 'Courier New', monospace;
-        }
+/* Background text effect */
+.bg-text {
+  position: fixed;
+  font-size: 18vw;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+  z-index: 0;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
 
-        .loading-dots::after {
-            content: '';
-            animation: dots 1.5s infinite;
-        }
+.bg-text-1 {
+  top: 10%;
+  left: -3%;
+}
 
-        @keyframes dots {
-            0% { content: ''; }
-            25% { content: '.'; }
-            50% { content: '..'; }
-            75% { content: '...'; }
-        }
+.bg-text-2 {
+  top: 38%;
+  right: -3%;
+}
 
-        .view-site-btn {
-            margin-top: 20px;
-            padding: 14px 32px;
-            background: var(--accent-orange);
-            color: var(--terminal-bg);
-            border: 1px solid var(--accent-orange);
-            border-radius: 8px;
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            align-self: flex-end;
-        }
+.bg-text-3 {
+  bottom: 3%;
+  left: -3%;
+}
 
-        .view-site-btn:hover {
-            background: var(--terminal-amber);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(244, 121, 33, 0.3);
-        }
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0;
+  transition: opacity 1.5s ease;
+}
 
-        .view-site-btn:disabled {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: var(--text-dim);
-            cursor: not-allowed;
-            transform: none;
-        }
+body.power-on .orb {
+  opacity: 0.08;
+  animation: float 25s ease-in-out infinite;
+}
 
-        /* ASCII Art Header */
-        .ascii-header {
-            color: var(--terminal-dim);
-            font-size: 12px;
-            line-height: 1;
-            margin-bottom: 20px;
-            white-space: pre;
-            font-family: 'Courier New', monospace;
-            opacity: 0.8;
-            letter-spacing: 0;
-        }
+.orb1 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, #404040, transparent);
+  top: -250px;
+  left: -200px;
+  animation-delay: 0s;
+}
 
-        /* Responsive adjustments */
-        @media (max-width: 1200px) {
-            .left-panel {
-                width: 400px;
-            }
-        }
+.orb2 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #303030, transparent);
+  bottom: -200px;
+  right: -150px;
+  animation-delay: 8s;
+}
 
-        @media (max-width: 900px) {
-            body {
-                flex-direction: column;
-            }
-            .left-panel {
-                width: 100%;
-                flex-direction: row;
-                height: 40vh;
-            }
-            .terminal-container,
-            .projects-container {
-                width: 50%;
-                height: 100%;
-            }
-            .preview-container {
-                height: 50vh;
-            }
-        }
+.orb3 {
+  width: 550px;
+  height: 550px;
+  background: radial-gradient(circle, #353535, transparent);
+  top: 40%;
+  right: 10%;
+  animation-delay: 16s;
+}
 
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-                gap: 10px;
-            }
-            .left-panel {
-                flex-direction: column;
-                height: auto;
-            }
-            .terminal-container,
-            .projects-container {
-                width: 100%;
-                height: 250px;
-            }
-            .back-btn {
-                top: 15px;
-                left: 15px;
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
-            }
-        }
-    </style>
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(80px, -80px) scale(1.05); }
+  66% { transform: translate(-60px, 80px) scale(0.95); }
+}
+
+/* Navigation */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 60px;
+  padding-right: 100px; /* Extra space for icon menu */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 40px; /* Space between elements */
+  z-index: 1000;
+  background: rgba(13, 13, 13, 0.7);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transform: translateY(-100%);
+  transition: transform 0.8s ease;
+}
+
+/* When scrolled, remove extra padding since menu moved */
+body.scrolled nav {
+  padding-right: 60px;
+}
+
+.logo-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+body.power-on nav {
+  transform: translateY(0);
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 500;
+  color: #ffffff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -0.02em;
+}
+
+.logo-text {
+  transition: opacity 0.3s ease;
+  position: relative;
+}
+
+.logo-text-alt {
+  position: absolute;
+  left: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  white-space: nowrap;
+}
+
+.logo.scrolled .logo-text {
+  opacity: 0;
+}
+
+.logo.scrolled .logo-text-alt {
+  opacity: 1;
+}
+
+.logo-icon {
+  width: 35px;
+  height: 35px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.nav-links {
+  display: flex;
+  gap: 40px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: #909090;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 400;
+  transition: color 0.3s ease;
+  position: relative;
+  letter-spacing: 0.02em;
+}
+
+.nav-links a:hover {
+  color: #f47921;
+}
+
+.nav-links a::before {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #f47921;
+  transition: width 0.3s ease;
+}
+
+.nav-links a:hover::before {
+  width: 100%;
+}
+
+/* Sections */
+section {
+  position: relative;
+  z-index: 1;
+  padding: 120px 60px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Hero Section */
+.hero-section {
+  min-height: 122vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-top: 100px;
+}
+
+.hero-content {
+  max-width: 800px;
+}
+
+.hero-label {
+  display: inline-block;
+  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 400;
+  color: #b0b0b0;
+  margin-bottom: 30px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.hero-content h1 {
+  font-size: 72px;
+  font-weight: 300;
+  line-height: 1.1;
+  margin-bottom: 30px;
+  color: #ffffff;
+  letter-spacing: -0.03em;
+}
+
+.hero-content h1 .highlight {
+  font-weight: 400;
+  background: linear-gradient(135deg, #f47921, #ff8c3a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-content p {
+  font-size: 18px;
+  line-height: 1.8;
+  color: #909090;
+  margin-bottom: 50px;
+  font-weight: 300;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero-cta {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn {
+  padding: 14px 32px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 0.02em;
+}
+
+.btn-primary {
+  background: #f47921;
+  color: #0d0d0d;
+  border: 1px solid #f47921;
+}
+
+.btn-primary:hover {
+  background: #ff8c3a;
+  border-color: #ff8c3a;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(244, 121, 33, 0.3);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Section Title */
+.section-title {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 60px;
+}
+
+.section-title h2 {
+  font-size: 42px;
+  font-weight: 300;
+  margin-bottom: 16px;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.section-title p {
+  font-size: 16px;
+  color: #707070;
+  font-weight: 300;
+}
+
+/* Work Section */
+.work-section {
+  padding: 0 60px 140px 60px;
+}
+
+.projects-container {
+  display: grid;
+  gap: 60px;
+}
+
+.project-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  padding: 60px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s ease;
+}
+
+.project-item:first-child {
+  border-top: none;
+}
+
+.project-item.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.project-item:nth-child(even) {
+  grid-template-columns: 1fr 1fr;
+}
+
+.project-item:nth-child(even) .project-visual {
+  order: 2;
+}
+
+.project-visual {
+  position: relative;
+  aspect-ratio: 16/10;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.4s ease;
+}
+
+.project-visual:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-4px);
+}
+
+.project-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  color: rgba(255, 255, 255, 0.1);
+}
+
+.project-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.project-visual:hover .project-image {
+  transform: scale(1.05);
+}
+
+.project-details {
+  padding: 20px 0;
+}
+
+.project-number {
+  font-size: 12px;
+  color: #606060;
+  margin-bottom: 16px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.project-details h3 {
+  font-size: 32px;
+  font-weight: 300;
+  margin-bottom: 20px;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.project-details p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #808080;
+  margin-bottom: 28px;
+  font-weight: 300;
+}
+
+.project-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.tech-tag {
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  font-size: 12px;
+  color: #909090;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.project-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  letter-spacing: 0.02em;
+}
+
+.project-link:hover {
+  gap: 12px;
+  color: #f47921;
+}
+
+.project-link i {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+/* Skills Section */
+.skills-section {
+  padding: 0 60px 140px 60px;
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px;
+}
+
+.skill-card {
+  padding: 48px 36px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  transition: all 0.4s ease;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.skill-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.skill-card:hover {
+  background: rgba(244, 121, 33, 0.03);
+  border-color: rgba(244, 121, 33, 0.2);
+  transform: translateY(-4px);
+}
+
+.skill-icon {
+  width: 56px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #ffffff;
+  margin-bottom: 24px;
+  transition: all 0.3s ease;
+}
+
+.skill-card:hover .skill-icon {
+  background: rgba(244, 121, 33, 0.08);
+  border-color: rgba(244, 121, 33, 0.3);
+  color: #f47921;
+}
+
+.skill-card h3 {
+  font-size: 20px;
+  font-weight: 400;
+  margin-bottom: 12px;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.skill-card p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #808080;
+  font-weight: 300;
+}
+
+/* Contact Section */
+.contact-section {
+  padding: 140px 60px;
+  text-align: center;
+}
+
+.contact-content h2 {
+  font-size: 48px;
+  font-weight: 300;
+  margin-bottom: 20px;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.contact-content p {
+  font-size: 16px;
+  color: #808080;
+  margin-bottom: 40px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  font-weight: 300;
+  line-height: 1.7;
+}
+
+.social-links {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.social-link {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #909090;
+  text-decoration: none;
+  font-size: 18px;
+  transition: all 0.3s ease;
+}
+
+.social-link:hover {
+  background: rgba(244, 121, 33, 0.08);
+  border-color: rgba(244, 121, 33, 0.3);
+  color: #f47921;
+  transform: translateY(-2px);
+}
+
+/* Footer */
+footer {
+  padding: 40px 60px;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  color: #606060;
+  font-size: 13px;
+  font-weight: 300;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .section-title {
+    min-height: 80vh;
+    padding: 40px 30px;
+  }
+
+  .section-title h2 {
+    font-size: 32px;
+  }
+
+  section {
+    padding: 80px 30px;
+  }
+
+  .work-section,
+  .skills-section {
+    padding: 0 30px 80px 30px;
+  }
+
+  nav {
+    padding: 20px 30px;
+  }
+
+  .nav-links {
+    gap: 24px;
+  }
+
+  .hero-content h1 {
+    font-size: 42px;
+  }
+
+  .hero-content p {
+    font-size: 16px;
+  }
+
+  .project-item {
+    grid-template-columns: 1fr !important;
+    gap: 40px;
+  }
+
+  .project-item:nth-child(even) .project-visual {
+    order: 0;
+  }
+
+  .skills-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-cta {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+</style>
+
+<style>
+/* RESPONSIVE FIXES FOR FULLSCREEN */
+/* Adjust lightbulb and radial light based on viewport height */
+@media (max-height: 800px) {
+  body.power-on .lightbulb-container {
+    top: min(120px, 18vh);
+  }
+  body.power-on .radial-light {
+    top: min(120px, 18vh);
+  }
+}
+
+@media (max-height: 700px) {
+  body.power-on .lightbulb-container {
+    top: min(100px, 15vh);
+  }
+  body.power-on .radial-light {
+    top: min(100px, 15vh);
+  }
+}
+
+@media (max-height: 600px) {
+  body.power-on .lightbulb-container {
+    top: min(80px, 12vh);
+  }
+  body.power-on .radial-light {
+    top: min(80px, 12vh);
+  }
+}
+
+@media (min-height: 1200px) {
+  body.power-on .lightbulb-container {
+    top: min(220px, 20vh);
+  }
+  body.power-on .radial-light {
+    top: min(220px, 20vh);
+  }
+}
+
+/* Hero content responsive spacing */
+@media (max-height: 700px) {
+  .hero-section {
+    min-height: 100vh;
+    padding-top: 60px;
+  }
+  .hero-content h1 {
+    font-size: clamp(48px, 8vw, 72px);
+  }
+}
+
+@media (min-height: 900px) {
+  .hero-section {
+    padding-top: min(100px, 12vh);
+  }
+}
+
+@media (min-width: 1920px) {
+  body.power-on .lightbulb-container {
+    top: min(240px, 20vh);
+  }
+  body.power-on .radial-light {
+    top: min(240px, 20vh);
+  }
+}
+
+/* Ultra-wide screen adjustments */
+@media (min-width: 2560px) {
+  .hero-content h1 {
+    font-size: clamp(72px, 5vw, 96px);
+  }
+  body.power-on .lightbulb-container {
+    top: min(280px, 18vh);
+  }
+  body.power-on .radial-light {
+    top: min(280px, 18vh);
+  }
+}
+</style>
 </head>
 <body>
-    <!-- Background Effects -->
-    <div class="bg-orbs">
-        <div class="orb orb1"></div>
-        <div class="orb orb2"></div>
+
+<div id="overlay"></div>
+<div class="radial-light"></div>
+
+<div class="bg-orbs">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+  <div class="bg-text bg-text-1">DESIGN EMPOWER</div>
+  <div class="bg-text bg-text-2">CODE UPLIFT</div>
+  <div class="bg-text bg-text-3">CREATE INSPIRE</div>
+</div>
+
+<div class="icon-dropdown">
+  <button class="icon-dropdown-btn" id="iconDropdownBtn">
+    <i class="fa-solid fa-grip"></i>
+  </button>
+  <div class="icon-menu" id="iconMenu">
+    <a href="index.html" title="Home" aria-label="Home">
+      <i class="fa-solid fa-home"></i>
+    </a>
+    <a href="about.html" title="About Me" aria-label="About Me">
+      <i class="fa-solid fa-user"></i>
+    </a>
+    <a href="warpzone.html" title="Warp Zone" aria-label="Warp Zone">
+      <i class="fa-solid fa-rocket"></i>
+    </a>
+  </div>
+</div>
+
+<div class="lightbulb-container" id="lightbulbContainer">
+  <div class="light-rays">
+    <div class="ray"></div>
+    <div class="ray"></div>
+    <div class="ray"></div>
+    <div class="ray"></div>
+    <div class="ray"></div>
+    <div class="ray"></div>
+    <div class="ray"></div>
+    <div class="ray"></div>
+  </div>
+  <div class="lightbulb" id="lightbulb">
+    <img src="images/logof.png" alt="Power Lightbulb Off" class="bulb-image bulb-off">
+    <img src="images/logo.png" alt="Power Lightbulb On" class="bulb-image bulb-on">
+  </div>
+</div>
+
+<nav>
+  <a href="#mainContent" class="logo" id="logoNav">
+    <div class="logo-icon">
+    <img src="images/logo.png" alt="Jerome Bustarga Logo">
+    </div>
+    <span class="logo-text-wrapper" style="position: relative;">
+      <span class="logo-text">Jerome Bustarga</span>
+      <span class="logo-text-alt">It's Jerome's World</span>
+    </span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#work">Work</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<main id="mainContent">
+  <section id="home" class="hero-section">
+    <div class="hero-content">
+      <h1>It's <span class="highlight">Jerome's world</span> and you're just living in it</h1>
+      <p>
+        Crafting digital experiences that seamlessly blend functionality with refined aesthetics. 
+        Focused on creating products that are both beautiful and purposeful.
+      </p>
+      <div class="hero-cta">
+        <a href="#work" class="btn btn-primary">
+          View Work
+          <i class="fa-solid fa-arrow-down"></i>
+        </a>
+        <a href="#contact" class="btn btn-secondary">
+          Get In Touch
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="work" class="work-section">
+    <div class="section-title">
+      <h2>Featured Work</h2>
+      <p>Recent projects and collaborations</p>
     </div>
 
-    <!-- Left Panel -->
-    <div class="left-panel">
-        <!-- Terminal -->
-        <div class="terminal-container">
-            <div class="terminal-content" id="terminalContent">
-                <div class="ascii-header">
- ____  _____ ____   ___  ____ ___ _____ ___  ______   __
-|  _ \| ____|  _ \ / _ \/ ___|_ _|_   _/ _ \|  _ \ \ / /
-| |_) |  _| | |_) | | | \___ \| |  | || | | | |_) \ V / 
-|  _ <| |___| |__/| |_| |___) | |  | || |_| |  _ < | |  
-|_| \_\_____|_|    \___/|____/___| |_| \___/|_| \_\|_|  
-                </div>
-                <div class="terminal-output">System initialized...</div>
-                <div class="terminal-output">Welcome to Jerome's Repository</div>
-                <div class="terminal-output">Type 'help' for available commands</div>
-                <div class="terminal-output">Type 'warpzone' to go back to warpzone</div>
-                <div class="terminal-output">Type 'home' to go to homepage</div>
-                <div id="terminalHistory"></div>
-                <div class="terminal-line">
-                    <span class="prompt">jerome@world:~/repository$</span>
-                    <input type="text" class="terminal-input" id="terminalInput" autofocus>
-                    <span class="cursor"></span>
-                </div>
-            </div>
+    <div class="projects-container">
+      <!-- Project 1 - Illustrations -->
+      <div class="project-item">
+        <div class="project-visual">
+         <img src="images/illustrations.png" alt="Illustrations Portfolio Preview" class="project-image" loading="lazy">
         </div>
+        <div class="project-details">
+          <div class="project-number">01</div>
+          <h3>Illustrations</h3>
+          <p>Creating vibrant digital and hand-drawn illustrations that bring stories to life. From character design to editorial illustrations, combining artistic vision with technical skill to produce compelling visual narratives.</p>
+          <div class="project-tech">
+            <span class="tech-tag">Adobe Illustrator</span>
+            <span class="tech-tag">Sketchbook</span>
+            <span class="tech-tag">Character Design</span>
+            <span class="tech-tag">Digital Art</span>
+          </div>
+          <a href="illustrations.html" class="project-link">
+            View Projects
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
 
-        <!-- Projects List -->
-        <div class="projects-container">
-            <div class="project-group">
-                <div class="project-group-title"># Full Stack Projects</div>
-                <div class="project-item" data-project="ecommerce-platform">ecommerce-platform</div>
-                <div class="project-item" data-project="task-manager">task-manager</div>
-                <div class="project-item" data-project="social-dashboard">social-dashboard</div>
-            </div>
-            
-            <div class="project-group">
-                <div class="project-group-title"># Web Applications</div>
-                <div class="project-item" data-project="weather-app">weather-app</div>
-                <div class="project-item" data-project="recipe-finder">recipe-finder</div>
-                <div class="project-item" data-project="crypto-tracker">crypto-tracker</div>
-            </div>
-            
-            <div class="project-group">
-                <div class="project-group-title"># Creative Experiments</div>
-                <div class="project-item" data-project="generative-art">generative-art</div>
-                <div class="project-item" data-project="3d-visualizer">3d-visualizer</div>
-                <div class="project-item" data-project="audio-reactive">audio-reactive</div>
-            </div>
-            
-            <div class="project-group">
-                <div class="project-group-title"># Digital Humanities</div>
-                <div class="project-item" data-project="data-stories">data-stories</div>
-                <div class="project-item" data-project="archive-explorer">archive-explorer</div>
-                <div class="project-item" data-project="text-analysis">text-analysis</div>
-            </div>
+      <!-- Project 2 - Logo & Branding -->
+      <div class="project-item">
+        <div class="project-visual">
+  <img src="images/logobranding.png" alt="Logo & Branding Portfolio Preview" class="project-image" loading="lazy">
+</div>
+        <div class="project-details">
+          <div class="project-number">02</div>
+          <h3>Logo & Branding</h3>
+          <p>Creating distinctive visual identities that capture brand essence. From concept to execution, crafting memorable logos and comprehensive brand systems that resonate with audiences and build lasting recognition.</p>
+          <div class="project-tech">
+            <span class="tech-tag">Adobe Illustrator</span>
+            <span class="tech-tag">Figma</span>
+            <span class="tech-tag">Brand Strategy</span>
+            <span class="tech-tag">Typography</span>
+          </div>
+          <a href="logobranding.html" class="project-link">
+            View Projects
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
         </div>
+      </div>
+
+      <!-- Project 3 - Web Design -->
+      <div class="project-item">
+        <div class="project-visual">
+  <img src="images/webdesign.png" alt="Web Design Portfolio Preview" class="project-image" loading="lazy">
+</div>
+        <div class="project-details">
+          <div class="project-number">03</div>
+          <h3>Web Design</h3>
+          <p>Designing beautiful, user-centered digital experiences with intuitive interfaces. Crafting responsive layouts and interactive prototypes that balance aesthetics with usability and accessibility standards.</p>
+          <div class="project-tech">
+            <span class="tech-tag">Figma</span>
+            <span class="tech-tag">UI/UX Design</span>
+            <span class="tech-tag">Responsive Design</span>
+            <span class="tech-tag">Prototyping</span>
+          </div>
+          <a href="#" class="project-link">
+            View Projects
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Project 4 - Research -->
+      <div class="project-item">
+        <div class="project-visual">
+  <img src="images/research.png" alt="Research Portfolio Preview" class="project-image" loading="lazy">
+</div>
+        <div class="project-details">
+          <div class="project-number">04</div>
+          <h3>Research</h3>
+          <p>Exploring emerging technologies and innovative solutions through systematic investigation. Conducting user studies, prototyping new concepts, and documenting findings for future development and implementation.</p>
+          <div class="project-tech">
+            <span class="tech-tag">UX Research</span>
+            <span class="tech-tag">Data Analysis</span>
+            <span class="tech-tag">User Testing</span>
+            <span class="tech-tag">Documentation</span>
+          </div>
+          <a href="#" class="project-link">
+            View Projects
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section id="skills" class="skills-section">
+  <div class="section-title">
+    <h2>Expertise</h2>
+    <p>Core competencies and technical skills</p>
+  </div>
+
+  <div class="skills-grid">
+    <div class="skill-card">
+      <div class="skill-icon">
+        <i class="fa-solid fa-code"></i>
+      </div>
+      <h3>Web Development</h3>
+      <p>Building full-stack web applications with Django, Python, Spring Boot, and Java with scalable architecture.</p>
     </div>
 
-    <!-- Right Panel - Preview -->
-    <div class="preview-container">
-        <div class="preview-frame" id="previewFrame">
-            <div class="preview-placeholder">
-                <div>
-                    <div style="margin-bottom: 20px; color: var(--terminal-orange); font-size: 24px;">
-                        <i class="fa-solid fa-code"></i>
-                    </div>
-                    <div style="font-size: 16px; color: var(--text-primary); margin-bottom: 10px;">
-                        NO PROJECT SELECTED
-                    </div>
-                    <div style="font-size: 13px; color: var(--text-dim);">
-                        Type a project name in the terminal<br>
-                        or click a project from the list
-                    </div>
-                </div>
-            </div>
-        </div>
-        <button class="view-site-btn" id="viewSiteBtn" disabled>VIEW SITE</button>
+    <div class="skill-card">
+      <div class="skill-icon">
+        <i class="fa-solid fa-palette"></i>
+      </div>
+      <h3>Graphic Design</h3>
+      <p>Creating visual content with Photoshop, Illustrator, and InDesign for impactful brand communication.</p>
     </div>
 
-    <script>
-        // Page load animation
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                document.body.classList.add('loaded');
-            }, 100);
+    <div class="skill-card">
+      <div class="skill-icon">
+        <i class="fa-solid fa-video"></i>
+      </div>
+      <h3>Video Production</h3>
+      <p>Producing cinematic content with Premiere Pro, After Effects, and professional filmmaking techniques.</p>
+    </div>
+
+    <div class="skill-card">
+      <div class="skill-icon">
+        <i class="fa-solid fa-camera"></i>
+      </div>
+      <h3>Photography</h3>
+      <p>Capturing compelling visuals with professional photo editing and visual storytelling expertise.</p>
+    </div>
+
+    <div class="skill-card">
+      <div class="skill-icon">
+        <i class="fa-solid fa-pen-nib"></i>
+      </div>
+      <h3>Branding & Design</h3>
+      <p>Developing comprehensive brand identities with logo design and cohesive design systems.</p>
+    </div>
+
+    <div class="skill-card">
+      <div class="skill-icon">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+      </div>
+      <h3>Motion Graphics</h3>
+      <p>Animating dynamic visuals with After Effects for engaging motion design and visual effects.</p>
+    </div>
+
+    <div class="skill-card">
+      <div class="skill-icon">
+        <i class="fa-solid fa-chart-line"></i>
+      </div>
+      <h3>Data Analytics</h3>
+      <p>Analyzing and visualizing data to uncover insights and drive data-informed decision making.</p>
+    </div>
+
+    <div class="skill-card">
+      <div class="skill-icon">
+        <i class="fa-solid fa-book-open"></i>
+      </div>
+      <h3>Digital Humanities</h3>
+      <p>Applying computational methods to humanistic inquiry, bridging technology and liberal arts.</p>
+    </div>
+  </div>
+</section>
+
+  <section id="contact" class="contact-section">
+    <div class="contact-content">
+      <h2>Let's Connect</h2>
+      <p>Open to discussing new projects, creative collaborations, or opportunities to bring your ideas to life.</p>
+      
+      <div class="hero-cta">
+        <a href="mailto:your.email@example.com" class="btn btn-primary">
+          <i class="fa-solid fa-envelope"></i>
+          Send Message
+        </a>
+      </div>
+
+      <div class="social-links" style="margin-top: 40px;">
+        <a href="https://github.com/jhb09808" target="_blank" class="social-link">
+          <i class="fa-brands fa-github"></i>
+        </a>
+        <a href="https://www.linkedin.com/in/jeromebustarga0321/" target="_blank" class="social-link">
+          <i class="fa-brands fa-linkedin"></i>
+        </a>
+        <a href="#" class="social-link">
+          <i class="fa-brands fa-twitter"></i>
+        </a>
+        <a href="#" class="social-link">
+          <i class="fa-brands fa-dribbble"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 Jerome Bustarga. Thoughtfully designed & built.</p>
+  </footer>
+</main>
+
+<script>
+// Lightbulb power functionality
+const lightbulbContainer = document.getElementById('lightbulbContainer');
+const lightbulb = document.getElementById('lightbulb');
+const overlay = document.getElementById('overlay');
+const main = document.getElementById('mainContent');
+
+let isPoweredOn = false;
+
+lightbulb.addEventListener('click', () => {
+  if (!isPoweredOn) {
+    isPoweredOn = true;
+    document.body.classList.add('power-on');
+    setTimeout(() => {
+      overlay.style.opacity = '0';
+      main.style.opacity = '1';
+      setTimeout(() => overlay.style.display = 'none', 2000);
+    }, 300);
+  }
+});
+
+// Icon dropdown menu toggle
+const iconDropdownBtn = document.getElementById('iconDropdownBtn');
+const iconMenu = document.getElementById('iconMenu');
+
+iconDropdownBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  iconMenu.classList.toggle('show');
+});
+
+// Close dropdown when clicking outside
+window.addEventListener('click', (e) => {
+  if (!e.target.closest('.icon-dropdown')) {
+    iconMenu.classList.remove('show');
+  }
+});
+
+// Scroll animations
+const observerOptions = {
+  threshold: 0.2,
+  rootMargin: '0px 0px -100px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, observerOptions);
+
+// Observe all project items and skill cards
+document.querySelectorAll('.project-item, .skill-card').forEach(item => {
+  observer.observe(item);
+});
+
+// Smooth scrolling for navigation
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+// Subtle parallax effect on scroll
+let lastScrollY = window.scrollY;
+const logoNav = document.getElementById('logoNav');
+const bgTexts = document.querySelectorAll('.bg-text');
+
+window.addEventListener('scroll', () => {
+  const scrollY = window.scrollY;
+  const orbs = document.querySelectorAll('.orb');
+  
+  // Orb parallax
+  orbs.forEach((orb, index) => {
+    const speed = (index + 1) * 0.2;
+    orb.style.transform = `translateY(${scrollY * speed}px)`;
+  });
+  
+  // Background text parallax
+  bgTexts.forEach((text, index) => {
+    let speed = 0.3;
+    let direction;
+    
+    // Alternate directions: 0 moves right, 1 moves left, 2 moves right
+    if (index === 0) {
+      direction = 1; // moves right
+    } else if (index === 1) {
+      direction = -1; // moves left
+    } else {
+      direction = 1; // moves right
+    }
+    
+    text.style.transform = `translateX(${scrollY * speed * direction}px)`;
+  });
+  
+  // Change logo text on scroll and move icon menu
+  if (scrollY > 100) {
+    logoNav.classList.add('scrolled');
+    document.body.classList.add('scrolled');
+  } else {
+    logoNav.classList.remove('scrolled');
+    document.body.classList.remove('scrolled');
+  }
+  
+  lastScrollY = scrollY;
+});
+
+// Refined mouse trail with p5.js
+new p5((p) => {
+  let trails = [];
+  
+  p.setup = () => {
+    const canvas = p.createCanvas(p.windowWidth, p.windowHeight);
+    canvas.position(0, 0);
+    canvas.style('pointer-events', 'none');
+    canvas.style('z-index', '9998');
+    canvas.style('position', 'fixed');
+    canvas.style('top', '0');
+    canvas.style('left', '0');
+    p.clear();
+    p.noStroke();
+  };
+
+  p.draw = () => {
+    p.clear();
+    
+    for (let i = trails.length - 1; i >= 0; i--) {
+      const point = trails[i];
+      
+      // Subtle white glow
+      p.fill(255, 255, 255, point.alpha * 0.08);
+      p.ellipse(point.x, point.y, point.size * 2);
+      
+      // Core
+      p.fill(255, 255, 255, point.alpha * 0.3);
+      p.ellipse(point.x, point.y, point.size);
+      
+      point.alpha -= 3;
+      point.size *= 0.96;
+      if (point.alpha <= 0) trails.splice(i, 1);
+    }
+
+    const d = p.dist(p.mouseX, p.mouseY, p.pmouseX, p.pmouseY);
+    if (d > 0) {
+      const steps = p.max(1, d * 0.5);
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const x = p.lerp(p.pmouseX, p.mouseX, t);
+        const y = p.lerp(p.pmouseY, p.mouseY, t);
+        trails.push({
+          x,
+          y,
+          size: p.random(6, 10),
+          alpha: p.random(120, 150)
         });
+      }
+    }
 
-        // Project data with preview URLs and actual site URLs
-        const projects = {
-            'ecommerce-platform': {
-                name: 'E-Commerce Platform',
-                preview: 'https://example.com/preview/ecommerce',
-                url: 'https://example.com/ecommerce',
-                description: 'Full-stack e-commerce solution with React and Node.js',
-                tech: ['React', 'Node.js', 'MongoDB', 'Stripe API']
-            },
-            'task-manager': {
-                name: 'Task Management System',
-                preview: 'https://example.com/preview/tasks',
-                url: 'https://example.com/tasks',
-                description: 'Collaborative task management with real-time updates',
-                tech: ['Vue.js', 'Express', 'PostgreSQL', 'Socket.io']
-            },
-            'social-dashboard': {
-                name: 'Social Media Dashboard',
-                preview: 'https://example.com/preview/social',
-                url: 'https://example.com/social',
-                description: 'Analytics dashboard for social media management',
-                tech: ['Next.js', 'D3.js', 'Firebase', 'REST APIs']
-            },
-            'weather-app': {
-                name: 'Weather Application',
-                preview: 'https://example.com/preview/weather',
-                url: 'https://example.com/weather',
-                description: 'Real-time weather data with interactive maps',
-                tech: ['JavaScript', 'OpenWeather API', 'Mapbox']
-            },
-            'recipe-finder': {
-                name: 'Recipe Finder',
-                preview: 'https://example.com/preview/recipes',
-                url: 'https://example.com/recipes',
-                description: 'AI-powered recipe recommendations',
-                tech: ['React', 'Spoonacular API', 'TensorFlow.js']
-            },
-            'crypto-tracker': {
-                name: 'Cryptocurrency Tracker',
-                preview: 'https://example.com/preview/crypto',
-                url: 'https://example.com/crypto',
-                description: 'Real-time cryptocurrency portfolio tracking',
-                tech: ['Vue.js', 'CoinGecko API', 'Chart.js']
-            },
-            'generative-art': {
-                name: 'Generative Art Gallery',
-                preview: 'https://example.com/preview/art',
-                url: 'https://example.com/art',
-                description: 'Interactive generative art experiments',
-                tech: ['p5.js', 'WebGL', 'Canvas API']
-            },
-            '3d-visualizer': {
-                name: '3D Data Visualizer',
-                preview: 'https://example.com/preview/3d',
-                url: 'https://example.com/3d',
-                description: '3D visualization of complex datasets',
-                tech: ['Three.js', 'WebGL', 'D3.js']
-            },
-            'audio-reactive': {
-                name: 'Audio Reactive Visuals',
-                preview: 'https://example.com/preview/audio',
-                url: 'https://example.com/audio',
-                description: 'Real-time audio visualization system',
-                tech: ['Web Audio API', 'p5.js', 'GLSL Shaders']
-            },
-            'data-stories': {
-                name: 'Interactive Data Stories',
-                preview: 'https://example.com/preview/stories',
-                url: 'https://example.com/stories',
-                description: 'Narrative-driven data visualization',
-                tech: ['Svelte', 'D3.js', 'ScrollMagic']
-            },
-            'archive-explorer': {
-                name: 'Digital Archive Explorer',
-                preview: 'https://example.com/preview/archive',
-                url: 'https://example.com/archive',
-                description: 'Interactive exploration of digital archives',
-                tech: ['React', 'ElasticSearch', 'IIIF']
-            },
-            'text-analysis': {
-                name: 'Text Analysis Tool',
-                preview: 'https://example.com/preview/text',
-                url: 'https://example.com/text',
-                description: 'NLP-powered text analysis and visualization',
-                tech: ['Python', 'spaCy', 'Plotly']
-            }
-        };
+    if (trails.length > 600) trails.splice(0, trails.length - 600);
+  };
 
-        let currentProject = null;
-        let commandHistory = [];
-        let historyIndex = -1;
-
-        const terminalInput = document.getElementById('terminalInput');
-        const terminalHistory = document.getElementById('terminalHistory');
-        const previewFrame = document.getElementById('previewFrame');
-        const viewSiteBtn = document.getElementById('viewSiteBtn');
-
-        // Terminal input handling
-        terminalInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                executeCommand(this.value.trim());
-                commandHistory.push(this.value);
-                historyIndex = commandHistory.length;
-                this.value = '';
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                if (historyIndex > 0) {
-                    historyIndex--;
-                    this.value = commandHistory[historyIndex];
-                }
-            } else if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                if (historyIndex < commandHistory.length - 1) {
-                    historyIndex++;
-                    this.value = commandHistory[historyIndex];
-                } else {
-                    historyIndex = commandHistory.length;
-                    this.value = '';
-                }
-            }
-        });
-
-        function executeCommand(command) {
-            // Add command to history display
-            const commandLine = document.createElement('div');
-            commandLine.className = 'terminal-line';
-            commandLine.innerHTML = `<span class="prompt">jerome@world:~/repository$</span> <span style="color: var(--terminal-orange); font-family: 'Courier New', monospace;">${command}</span>`;
-            terminalHistory.appendChild(commandLine);
-
-            // Process command
-            const cmd = command.toLowerCase();
-            
-            if (cmd === 'help') {
-                addOutput('Available commands:', 'output');
-                addOutput('  help       - Show this help message', 'output');
-                addOutput('  list       - List all projects', 'output');
-                addOutput('  clear      - Clear terminal', 'output');
-                addOutput('  info       - Show current project info', 'output');
-                addOutput('', 'output');
-                addOutput('Navigation commands:', 'output');
-                addOutput('  warpzone   - Return to warpzone', 'output');
-                addOutput('  home       - Go to homepage', 'output');
-                addOutput('  about      - Go to about page', 'output');
-                addOutput('', 'output');
-                addOutput('Or type any project name to preview it', 'output');
-            } else if (cmd === 'clear') {
-                terminalHistory.innerHTML = '';
-                addOutput('Terminal cleared', 'success');
-            } else if (cmd === 'list' || cmd === 'ls') {
-                addOutput('Available projects:', 'output');
-                Object.keys(projects).forEach(key => {
-                    addOutput(`  • ${key}`, 'output');
-                });
-            } else if (cmd === 'info') {
-                if (currentProject) {
-                    const proj = projects[currentProject];
-                    addOutput(`Project: ${proj.name}`, 'success');
-                    addOutput(`Description: ${proj.description}`, 'output');
-                    addOutput(`Technologies: ${proj.tech.join(', ')}`, 'output');
-                } else {
-                    addOutput('No project currently selected', 'error');
-                }
-            } else if (cmd === 'warpzone' || cmd === 'warp') {
-                addOutput('Returning to warpzone...', 'success');
-                setTimeout(() => {
-                    window.location.href = 'warpzone.html';
-                }, 1000);
-            } else if (cmd === 'home') {
-                addOutput('Going to homepage...', 'success');
-                setTimeout(() => {
-                    window.location.href = 'index2.html';
-                }, 1000);
-            } else if (cmd === 'about') {
-                addOutput('Going to about page...', 'success');
-                setTimeout(() => {
-                    window.location.href = 'about.html';
-                }, 1000);
-            } else if (projects[cmd]) {
-                loadProject(cmd);
-            } else if (cmd === '') {
-                // Empty command, do nothing
-            } else {
-                addOutput(`Command not found: ${command}`, 'error');
-                addOutput("Type 'help' for available commands", 'output');
-            }
-
-            // Scroll terminal to bottom
-            const terminal = document.querySelector('.terminal-container');
-            terminal.scrollTop = terminal.scrollHeight;
-        }
-
-        function addOutput(text, type = 'output') {
-            const output = document.createElement('div');
-            output.className = `terminal-${type}`;
-            output.textContent = text;
-            terminalHistory.appendChild(output);
-        }
-
-        function loadProject(projectKey) {
-            const project = projects[projectKey];
-            if (!project) return;
-
-            currentProject = projectKey;
-            
-            // Update terminal
-            addOutput(`Loading ${project.name}...`, 'success');
-            
-            // Update active state in list
-            document.querySelectorAll('.project-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.dataset.project === projectKey) {
-                    item.classList.add('active');
-                }
-            });
-
-            // Show loading state
-            previewFrame.innerHTML = `
-                <div class="preview-loading">
-                    <div>LOADING PROJECT<span class="loading-dots"></span></div>
-                </div>
-            `;
-
-            // Simulate loading and show preview
-            setTimeout(() => {
-                previewFrame.innerHTML = `
-                    <div class="preview-placeholder" style="background: linear-gradient(135deg, rgba(244, 121, 33, 0.02), rgba(13, 13, 13, 0.5));">
-                        <div style="max-width: 600px;">
-                            <div style="font-size: 28px; margin-bottom: 20px; color: var(--terminal-orange); font-weight: 300;">
-                                ${project.name}
-                            </div>
-                            <div style="font-size: 14px; margin-bottom: 20px; color: var(--text-secondary); line-height: 1.6;">
-                                ${project.description}
-                            </div>
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
-                                ${project.tech.map(tech => `
-                                    <span style="
-                                        padding: 6px 16px;
-                                        background: rgba(255, 255, 255, 0.03);
-                                        border: 1px solid rgba(255, 255, 255, 0.08);
-                                        border-radius: 20px;
-                                        font-size: 12px;
-                                        color: var(--text-secondary);
-                                    ">${tech}</span>
-                                `).join('')}
-                            </div>
-                            <div style="margin-top: 30px; padding: 20px; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(244, 121, 33, 0.02);">
-                                <div style="color: var(--terminal-orange); font-size: 12px; font-family: 'Courier New', monospace;">
-                                    // Project preview will be embedded here
-                                </div>
-                                <div style="color: var(--text-dim); font-size: 11px; margin-top: 10px; font-family: 'Courier New', monospace;">
-                                    // Replace preview URL with actual project URL
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                // When you have real URLs, use this instead:
-                // previewFrame.innerHTML = `<iframe src="${project.preview}" class="preview-iframe"></iframe>`;
-                
-                viewSiteBtn.disabled = false;
-            }, 1500);
-        }
-
-        // Project list click handling
-        document.querySelectorAll('.project-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const projectKey = this.dataset.project;
-                terminalInput.value = projectKey;
-                executeCommand(projectKey);
-            });
-        });
-
-        // View site button
-        viewSiteBtn.addEventListener('click', function() {
-            if (currentProject && projects[currentProject]) {
-                window.open(projects[currentProject].url, '_blank');
-            }
-        });
-
-        // Keep focus on terminal input
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.view-site-btn')) {
-                terminalInput.focus();
-            }
-        });
-
-        // Initial focus
-        terminalInput.focus();
-
-        // Mouse trail effect with p5.js (matching your portfolio)
-        new p5((p) => {
-            let trails = [];
-            
-            p.setup = () => {
-                const canvas = p.createCanvas(p.windowWidth, p.windowHeight);
-                canvas.position(0, 0);
-                canvas.style('pointer-events', 'none');
-                canvas.style('z-index', '9998');
-                canvas.style('position', 'fixed');
-                canvas.style('top', '0');
-                canvas.style('left', '0');
-                p.clear();
-                p.noStroke();
-            };
-
-            p.draw = () => {
-                p.clear();
-                
-                for (let i = trails.length - 1; i >= 0; i--) {
-                    const point = trails[i];
-                    
-                    // Subtle white glow
-                    p.fill(255, 255, 255, point.alpha * 0.08);
-                    p.ellipse(point.x, point.y, point.size * 2);
-                    
-                    // Core
-                    p.fill(255, 255, 255, point.alpha * 0.3);
-                    p.ellipse(point.x, point.y, point.size);
-                    
-                    point.alpha -= 3;
-                    point.size *= 0.96;
-                    if (point.alpha <= 0) trails.splice(i, 1);
-                }
-
-                const d = p.dist(p.mouseX, p.mouseY, p.pmouseX, p.pmouseY);
-                if (d > 0) {
-                    const steps = p.max(1, d * 0.5);
-                    for (let i = 0; i <= steps; i++) {
-                        const t = i / steps;
-                        const x = p.lerp(p.pmouseX, p.mouseX, t);
-                        const y = p.lerp(p.pmouseY, p.mouseY, t);
-                        trails.push({
-                            x,
-                            y,
-                            size: p.random(6, 10),
-                            alpha: p.random(120, 150)
-                        });
-                    }
-                }
-
-                if (trails.length > 600) trails.splice(0, trails.length - 600);
-            };
-
-            p.windowResized = () => {
-                p.resizeCanvas(p.windowWidth, p.windowHeight);
-            };
-        });
-    </script>
+  p.windowResized = () => {
+    p.resizeCanvas(p.windowWidth, p.windowHeight);
+  };
+});
+</script>
 </body>
 </html>
