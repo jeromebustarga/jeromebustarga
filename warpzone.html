@@ -879,6 +879,7 @@ function getWalls() {
   }
 }
 
+// FIXED: Improved platform collision detection to prevent getting stuck
 function checkPlatformCollision(x, y, width, height) {
   const walls = getWalls();
   const arenaRect = gameArena.getBoundingClientRect();
@@ -894,8 +895,9 @@ function checkPlatformCollision(x, y, width, height) {
     const wallRect = wall.getBoundingClientRect();
     
     // Check if character is above platform and falling
-    if (charBox.bottom >= wallRect.top &&
-        charBox.bottom <= wallRect.top + 10 &&
+    // Increased tolerance and improved detection
+    if (charBox.bottom >= wallRect.top - 2 &&
+        charBox.bottom <= wallRect.top + 15 &&
         charBox.right > wallRect.left + 5 &&
         charBox.left < wallRect.right - 5 &&
         velocityY >= 0) {
@@ -909,10 +911,12 @@ function checkPlatformCollision(x, y, width, height) {
   return { collision: false };
 }
 
+// FIXED: Adjusted wall collision margins to prevent embedding
 function isWallAt(x, y) {
   const arenaRect = gameArena.getBoundingClientRect();
   
-  const margin = 12;
+  // Reduced margin to prevent character from getting too embedded
+  const margin = 8;
   const charBox = {
     left: arenaRect.left + x + margin,
     right: arenaRect.left + x + 40 - margin,
@@ -940,6 +944,7 @@ function isWallAt(x, y) {
   return false;
 }
 
+// FIXED: Improved movement function with better ground detection
 function moveCharacter() {
   if (!isPoweredOn || !physicsActive) {
     requestAnimationFrame(moveCharacter);
@@ -977,30 +982,46 @@ function moveCharacter() {
     // Check horizontal wall collision
     if (!isWallAt(newX, charY)) {
       charX = newX;
+    } else {
+      velocityX = 0;
     }
     
     // Check platform collision for vertical movement
     const collision = checkPlatformCollision(charX, newY, 40, 60);
     
     if (collision.collision) {
-      charY = collision.platformTop - 60;
+      // Snap to platform top with small offset to prevent embedding
+      charY = collision.platformTop - 58;
       velocityY = 0;
       isGrounded = true;
     } else {
       // Check if moving into wall vertically
       if (!isWallAt(charX, newY)) {
         charY = newY;
+        isGrounded = false;
       } else {
-        velocityY = 0;
+        // If hitting a wall from side while falling, stop vertical velocity
+        if (velocityY > 0) {
+          velocityY = 0;
+          isGrounded = true;
+        }
       }
-      isGrounded = false;
     }
     
-    // Bottom boundary safety
-    if (charY > arenaRect.height - 60) {
-      charY = arenaRect.height - 60;
+    // Bottom boundary safety - ensure character doesn't go below ground
+    if (charY > arenaRect.height - 65) {
+      charY = arenaRect.height - 65;
       velocityY = 0;
       isGrounded = true;
+    }
+    
+    // Additional ground check for stability
+    if (isGrounded) {
+      // Check if still on ground
+      const stillOnGround = checkPlatformCollision(charX, charY + 2, 40, 60);
+      if (!stillOnGround.collision && charY < arenaRect.height - 65) {
+        isGrounded = false;
+      }
     }
     
   } else {
