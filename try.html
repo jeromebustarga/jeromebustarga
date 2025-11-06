@@ -27,6 +27,70 @@ body {
   line-height: 1.6;
 }
 
+/* Container for centering with scroll if needed */
+#gameContainer {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  overflow: auto; /* Allow scrolling if content is too large */
+  padding: 20px;
+}
+
+body.power-on #gameContainer {
+  display: flex;
+}
+
+#gameContainer.hide-cursor,
+#gameContainer.hide-cursor * {
+  cursor: none !important;
+}
+
+.game-arena {
+  position: relative;
+  width: 90vw;
+  max-width: 1200px;
+  min-width: 800px;  /* Prevent arena from getting too small */
+  height: 70vh;
+  min-height: 500px;  /* Minimum height to maintain playability */
+  max-height: 700px;  /* Maximum height for very tall screens */
+  background: rgba(20, 20, 20, 0.6);
+  border: 2px solid rgba(244, 121, 33, 0.2);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  overflow: hidden;
+  box-shadow: 0 0 60px rgba(244, 121, 33, 0.1);
+  pointer-events: none;
+}
+
+/* Small screen adjustments */
+@media (max-width: 850px) {
+  .game-arena {
+    transform: scale(0.85);
+    transform-origin: center;
+  }
+}
+
+@media (max-width: 700px) {
+  .game-arena {
+    transform: scale(0.7);
+    transform-origin: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .game-arena {
+    transform: scale(0.6);
+    transform-origin: center;
+  }
+  
+  #gameContainer {
+    padding: 10px;
+  }
+}
+
 /* Lightbulb Power Button */
 .lightbulb-container {
   position: fixed;
@@ -162,38 +226,6 @@ body.power-on .light-rays {
   to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-#gameContainer {
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-}
-
-body.power-on #gameContainer {
-  display: flex;
-}
-
-#gameContainer.hide-cursor,
-#gameContainer.hide-cursor * {
-  cursor: none !important;
-}
-
-.game-arena {
-  position: relative;
-  width: 90vw;
-  max-width: 1200px;
-  height: 70vh;
-  background: rgba(20, 20, 20, 0.6);
-  border: 2px solid rgba(244, 121, 33, 0.2);
-  border-radius: 20px;
-  backdrop-filter: blur(20px);
-  overflow: hidden;
-  box-shadow: 0 0 60px rgba(244, 121, 33, 0.1);
-  pointer-events: none;
-}
-
 .character {
   position: absolute;
   width: 40px;
@@ -255,6 +287,16 @@ body.power-on #gameContainer {
   color: #f47921;
   transition: all 0.3s ease;
   line-height: 1;
+}
+
+/* Scale down door icons on smaller grids */
+@media (max-width: 850px) {
+  .door-icon, .studio-door-icon {
+    font-size: 44px;
+  }
+  .door-label, .studio-door-label {
+    font-size: 10px;
+  }
 }
 
 .door.can-enter .door-icon {
@@ -631,13 +673,13 @@ for (let row = 0; row < 20; row++) {
 
 // Door positions for main level - placed at center of bounding boxes
 const mainDoorData = [
-  { row: 12, col: 6, id: 'doorRepository', icon: 'fa-door-open', label: 'Repository', type: 'repository' }, // Center of (11,5)(13,7)
-  { row: 8, col: 21, id: 'doorStudio', icon: 'fa-door-open', label: 'Studio', type: 'studio' }, // Center of (7,20)(9,22)
-  { row: 4, col: 14, id: 'doorHome', icon: 'fa-door-closed', label: 'Home', type: 'home' }, // Center of (3,13)(5,15)
-  { row: 12, col: 23, id: 'doorAbout', icon: 'fa-user-circle', label: 'About', type: 'about' } // Center of (11,22)(13,24)
+  { row: 12, col: 6, id: 'doorRepository', icon: 'fa-door-open', label: 'Repository', type: 'repository' },
+  { row: 8, col: 21, id: 'doorStudio', icon: 'fa-door-open', label: 'Studio', type: 'studio' },
+  { row: 4, col: 14, id: 'doorHome', icon: 'fa-door-closed', label: 'Home', type: 'home' },
+  { row: 12, col: 23, id: 'doorAbout', icon: 'fa-user-circle', label: 'About', type: 'about' }
 ];
 
-// Studio level grid maze layout (30x20 grid) - maze navigation, LEFT-RIGHT ONLY
+// Studio level grid maze layout (30x20 grid) - maze navigation
 const studioMazeGrid = [];
 
 for (let row = 0; row < 20; row++) {
@@ -879,31 +921,50 @@ function getWalls() {
   }
 }
 
-// FIXED: Improved platform collision detection to prevent getting stuck
+// Helper function to get arena scale
+function getArenaScale() {
+  const computedStyle = window.getComputedStyle(gameArena);
+  const transform = computedStyle.transform;
+  
+  if (transform && transform !== 'none') {
+    const values = transform.split('(')[1].split(')')[0].split(',');
+    return parseFloat(values[0]);
+  }
+  return 1;
+}
+
+// FIXED: Scale-aware platform collision detection
 function checkPlatformCollision(x, y, width, height) {
   const walls = getWalls();
   const arenaRect = gameArena.getBoundingClientRect();
+  const scale = getArenaScale();
+  
+  // Adjust collision box for scale
+  const scaledWidth = width * scale;
+  const scaledHeight = height * scale;
   
   const charBox = {
-    left: arenaRect.left + x,
-    right: arenaRect.left + x + width,
-    top: arenaRect.top + y,
-    bottom: arenaRect.top + y + height
+    left: arenaRect.left + (x * scale),
+    right: arenaRect.left + (x * scale) + scaledWidth,
+    top: arenaRect.top + (y * scale),
+    bottom: arenaRect.top + (y * scale) + scaledHeight
   };
   
   for (let wall of walls) {
     const wallRect = wall.getBoundingClientRect();
     
+    // Dynamic tolerance based on scale
+    const tolerance = Math.max(15 * scale, 10);
+    
     // Check if character is above platform and falling
-    // Increased tolerance and improved detection
-    if (charBox.bottom >= wallRect.top - 2 &&
-        charBox.bottom <= wallRect.top + 15 &&
-        charBox.right > wallRect.left + 5 &&
-        charBox.left < wallRect.right - 5 &&
+    if (charBox.bottom >= wallRect.top - (2 * scale) &&
+        charBox.bottom <= wallRect.top + tolerance &&
+        charBox.right > wallRect.left + (5 * scale) &&
+        charBox.left < wallRect.right - (5 * scale) &&
         velocityY >= 0) {
       return {
         collision: true,
-        platformTop: wallRect.top - arenaRect.top
+        platformTop: (wallRect.top - arenaRect.top) / scale
       };
     }
   }
@@ -911,17 +972,19 @@ function checkPlatformCollision(x, y, width, height) {
   return { collision: false };
 }
 
-// FIXED: Adjusted wall collision margins to prevent embedding
+// FIXED: Scale-aware wall collision detection
 function isWallAt(x, y) {
   const arenaRect = gameArena.getBoundingClientRect();
+  const scale = getArenaScale();
   
-  // Reduced margin to prevent character from getting too embedded
-  const margin = 8;
+  // Dynamic margin based on scale - smaller margin at smaller scales
+  const margin = Math.max(6 * scale, 4);
+  
   const charBox = {
-    left: arenaRect.left + x + margin,
-    right: arenaRect.left + x + 40 - margin,
-    top: arenaRect.top + y + margin,
-    bottom: arenaRect.top + y + 60 - margin
+    left: arenaRect.left + (x * scale) + margin,
+    right: arenaRect.left + ((x + 40) * scale) - margin,
+    top: arenaRect.top + (y * scale) + margin,
+    bottom: arenaRect.top + ((y + 60) * scale) - margin
   };
   
   const walls = getWalls();
@@ -944,7 +1007,7 @@ function isWallAt(x, y) {
   return false;
 }
 
-// FIXED: Improved movement function with better ground detection
+// FIXED: Improved movement function with scale awareness
 function moveCharacter() {
   if (!isPoweredOn || !physicsActive) {
     requestAnimationFrame(moveCharacter);
@@ -952,6 +1015,11 @@ function moveCharacter() {
   }
   
   const arenaRect = gameArena.getBoundingClientRect();
+  const scale = getArenaScale();
+  
+  // Get unscaled arena dimensions
+  const unscaledWidth = arenaRect.width / scale;
+  const unscaledHeight = arenaRect.height / scale;
   
   if (currentLevel === 'main') {
     // MAIN LEVEL: Left-Right movement + Jumping with gravity
@@ -975,9 +1043,9 @@ function moveCharacter() {
     let newX = charX + velocityX;
     let newY = charY + velocityY;
     
-    // Horizontal boundaries
+    // Horizontal boundaries (use unscaled dimensions)
     if (newX < 5) newX = 5;
-    if (newX > arenaRect.width - 45) newX = arenaRect.width - 45;
+    if (newX > unscaledWidth - 45) newX = unscaledWidth - 45;
     
     // Check horizontal wall collision
     if (!isWallAt(newX, charY)) {
@@ -1009,8 +1077,8 @@ function moveCharacter() {
     }
     
     // Bottom boundary safety - ensure character doesn't go below ground
-    if (charY > arenaRect.height - 65) {
-      charY = arenaRect.height - 65;
+    if (charY > unscaledHeight - 65) {
+      charY = unscaledHeight - 65;
       velocityY = 0;
       isGrounded = true;
     }
@@ -1019,7 +1087,7 @@ function moveCharacter() {
     if (isGrounded) {
       // Check if still on ground
       const stillOnGround = checkPlatformCollision(charX, charY + 2, 40, 60);
-      if (!stillOnGround.collision && charY < arenaRect.height - 65) {
+      if (!stillOnGround.collision && charY < unscaledHeight - 65) {
         isGrounded = false;
       }
     }
@@ -1033,13 +1101,13 @@ function moveCharacter() {
     if (keys.ArrowLeft && charX > 5) {
       newX = charX - speed;
     }
-    if (keys.ArrowRight && charX < arenaRect.width - 45) {
+    if (keys.ArrowRight && charX < unscaledWidth - 45) {
       newX = charX + speed;
     }
     if (keys.ArrowUp && charY > 5) {
       newY = charY - speed;
     }
-    if (keys.ArrowDown && charY < arenaRect.height - 65) {
+    if (keys.ArrowDown && charY < unscaledHeight - 65) {
       newY = charY + speed;
     }
     
@@ -1144,6 +1212,33 @@ function enterDoor(doorType) {
       break;
   }
 }
+
+// Handle window resize
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    // Recalculate position if needed when window resizes
+    if (isPoweredOn && physicsActive) {
+      const arenaRect = gameArena.getBoundingClientRect();
+      const scale = getArenaScale();
+      const unscaledWidth = arenaRect.width / scale;
+      const unscaledHeight = arenaRect.height / scale;
+      
+      // Keep character within bounds
+      if (charX > unscaledWidth - 45) {
+        charX = unscaledWidth - 45;
+      }
+      if (charY > unscaledHeight - 65) {
+        charY = unscaledHeight - 65;
+        isGrounded = true;
+      }
+      
+      character.style.left = charX + 'px';
+      character.style.top = charY + 'px';
+    }
+  }, 100);
+});
 
 moveCharacter();
 
